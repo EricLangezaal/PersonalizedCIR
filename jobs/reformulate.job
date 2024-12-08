@@ -1,0 +1,25 @@
+#!/bin/bash
+
+#SBATCH --partition=gpu
+#SBATCH --gpus=1
+#SBATCH --job-name=reformulate
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=15
+#SBATCH --time=00:30:00
+#SBATCH --output=outputs/slurm_output_reformulate_%A.out
+
+# This script reformulates, AFTER PTKB selection has already been done.
+
+module purge
+module load 2024
+module load Anaconda3/2024.06-1
+
+source jobs/set_secrets.sh
+
+if [ -z "$OPENAI_API_KEY" ]; then
+  echo "Error: openAI key is empty!"
+  exit 1
+fi
+
+source activate ir2
+srun python -u pcir/reformulate.py --shot 5 --llm_model "meta-llama/Meta-Llama-3.1-8B-Instruct"

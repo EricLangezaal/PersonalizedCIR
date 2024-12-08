@@ -1,0 +1,21 @@
+#!/bin/bash
+
+#SBATCH --partition=gpu
+#SBATCH --gpus=1
+#SBATCH --job-name=bm25_eval
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=15
+#SBATCH --time=2:00:00
+#SBATCH --output=outputs/slurm_bm25_eval_STR_%A.out
+ 
+module purge
+module load 2024
+module load Anaconda3/2024.06-1
+source activate ir2
+
+QUERY_TYPE="concat"
+INPUT_PATH="data/results/Llama/2023_test_STR_1shot_prompt_type1_meta-llama.jsonl"
+
+# Use --subset to apply filtering
+# use --new_ptkb for extra filtering (corrected methodology)
+srun python -u pcir/bm25_ikat.py --input_query_path $INPUT_PATH --query_type $QUERY_TYPE 

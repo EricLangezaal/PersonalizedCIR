@@ -1,0 +1,62 @@
+#!/bin/bash
+#SBATCH --partition=cbuild
+#SBATCH --gpus=0
+#SBATCH --job-name=Download_Pyserini_Index
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=2
+#SBATCH --time=06:00:00
+#SBATCH --output=outputs/download_pyserini_index_output_%A.out
+
+DEST_DIR="/scratch-shared/ikat23/"
+source jobs/set_secrets.sh
+
+# Define the base URL and destination directory
+BASE_URL="https://ikattrecweb.grill.science/UvA"
+CHECKSUM_URL="$BASE_URL/ikat_2023_passage_index.sha256sums"
+
+# Ensure that environment variables for authentication are set
+if [ -z "$IKAT_USERNAME" ] || [ -z "$IKAT_PASSWORD" ]; then
+    echo "Error: Username and password environment variables are not set."
+    exit 1
+fi
+
+# Create the destination directory if it doesn't exist
+mkdir -p $DEST_DIR
+cd $DEST_DIR
+
+
+# Download Pyserini index parts in a loop with authentication
+PARTS=("partaa" "partab" "partac" "partad" "partae" "partaf" "partag" "partah" "partai" "partaj" "partak" "partal" "partam" "partan")
+
+for PART in "${PARTS[@]}"; do
+    FILE_NAME="ikat_2023_passage_index.tar.bz2.$PART"
+    echo "Downloading $FILE_NAME..."
+    wget -nv --user="$IKAT_USERNAME" --password="$IKAT_PASSWORD" "$BASE_URL/$FILE_NAME" -O "$DEST_DIR/$FILE_NAME"
+    sync
+done
+
+# Download the checksum file
+echo "Downloading checksum file..."
+wget -nv --user="$IKAT_USERNAME" --password="$IKAT_PASSWORD" "$CHECKSUM_URL" -O "$DEST_DIR/ikat_2023_passage_index.sha256sums"
+
+# Verify file integrity with checksums
+echo "Verifying checksums..."
+sha256sum -c ikat_2023_passage_index.sha256sums --ignore-missing
+
+# Merge the parts to create the complete archive
+echo "Merging parts into a single archive..."
+cat ikat_2023_passage_index.tar.bz2.part* > ikat_2023_passage_index.tar.bz2
+
+# Decompress the merged archive
+echo "Decompressing the archive..."
+tar -xvjf ikat_2023_passage_index.tar.bz2
+
+# Add permissions to repository, uncomment and modify as needed
+#setfacl -R -m u:...:rwx .
+#setfacl -R -m u:...:rwx .
+#setfacl -R -m u:...:rwx .
+
+# remove archives to cleanup
+rm ikat_2023_passage_index.*
+
+echo "Download, merging, and decompression completed."

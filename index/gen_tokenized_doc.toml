@@ -1,0 +1,17 @@
+title = "tokenizing the collection (all passaages) for later embedding generation"
+
+
+# [Model]
+model_type = "ANCE"
+pretrained_passage_encoder = "3ricL/ad-hoc-ance-msmarco"
+max_seq_length = 384    # The maximum total input sequence length after tokenization. Sequences longer than this will be truncated, sequences shorter will be padded.
+max_doc_character = 10000   # used before tokenizer to save tokenizer latency
+
+
+# [Input Data]
+raw_collection_path = "/scratch-shared/ikat23/jsonl_passages/collection.jsonl" # NOTE: this should point to the document collection
+
+
+
+# [Output]
+data_output_path = "/scratch-shared/ikat23/tokenized" # NOTE: this will be the input to the embedding script

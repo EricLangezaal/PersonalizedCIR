@@ -1,0 +1,30 @@
+[test_config]
+output_id = "" # Use to give output file a unique postfix.
+passage_embeddings_dir_path = "/scratch-shared/ikat23/embeds"
+pretrained_encoder_path = "3ricL/ad-hoc-ance-msmarco"
+trec_gold_qrel_file_path = "data/{YEAR}-qrels.all-turns.txt"
+passage_offset2pid_path = "/scratch-shared/ikat23/tokenized/offset2pid.pickle"
+
+# Options for retrieval
+test_type = "reformulate"
+is_train = false
+is_mixeval = false
+top_k = 1000
+n_gpu = 1
+rel_threshold = 1
+seed = 42
+per_gpu_test_batch_size = 4
+passage_block_num = 47  # us: 47 for all, 1 for subset. AUTHORS PUT THIS: 22 for qrecc and 26 for topiocqa
+num_split_block = 1  # Further split each block to reduce GPU memory usage
+disable_tqdm = false
+use_gpu = true
+use_data_percent = 1.0  # Adjust this value based on the fraction of data you want to use
+
+# Limits for text length
+# is this characters or tokens?
+max_query_length = 64
+max_doc_length = 384
+max_response_length = 256
+max_concat_length = 512
+
+passage_collection_path = "/scratch-shared/ikat23/jsonl_passages/collection.jsonl"  

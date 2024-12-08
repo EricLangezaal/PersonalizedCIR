@@ -1,0 +1,7 @@
+outputs/
+jobs/set_secrets.sh
+__pycache__/
+index/ad-hoc-ance-msmarco/
+pcir.egg-info
+data/results/trec_files/
+data/2024-qrels.all-turns.txt

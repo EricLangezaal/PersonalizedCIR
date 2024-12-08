@@ -1,0 +1,269 @@
+#!/bin/bash
+
+#SBATCH --partition=gpu
+#SBATCH --gpus=1
+#SBATCH --job-name=test_ikat_dense
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=18
+#SBATCH --time=10:00:00
+#SBATCH --output=outputs/batch_test_ikat_dense_final_%A.out
+
+# Load necessary modules
+module purge
+module load 2024
+module load Anaconda3/2024.06-1
+
+# Activate the Conda environment
+source activate ir2
+
+# Define the input parameters
+TYPES=("All" "automatic" "human" "LLM" "None" "SAR")
+RUNS=(1 2 3 4 5)
+SHOT_VERSIONS=("0shot" "1shot" "3shot" "5shot")
+PROMPTS=("prompt1" "prompt2")
+YEARS=(2024 2023)
+
+# Loop over each year
+for YEAR in "${YEARS[@]}"; do
+  echo "Starting processing for Year: $YEAR"
+
+  # Define TREC file directories based on year
+  if [ "$YEAR" -eq 2023 ]; then
+    TREC_DIRS=("data/results/trec_files/2023" "data/results/trec_files")
+  else
+    TREC_DIRS=("data/results/trec_files/$YEAR")
+  fi
+
+  # Loop over types
+  for TYPE in "${TYPES[@]}"; do
+    # Loop over runs
+    for RUN in "${RUNS[@]}"; do
+      # Loop over shot versions
+      for SHOT in "${SHOT_VERSIONS[@]}"; do
+
+        if [ "$TYPE" == "SAR" ]; then
+          # SAR type does not have prompts and does not require split_rewrite
+
+          # Define the INPUT_PATH
+          INPUT_PATH="data/batch/gpt-4o-mini/${YEAR}/processed/batch_SAR_${SHOT}_run${RUN}.jsonl"
+
+          # Define the TREC_FILE path
+          TREC_FILE="ance_batch_SAR_${SHOT}_run${RUN}_ttype_reformulate.trec"
+
+          # Check if the TREC file exists in any of the directories
+          TREC_EXISTS=false
+          for DIR in "${TREC_DIRS[@]}"; do
+            if [ -f "${DIR}/${TREC_FILE}" ]; then
+              echo "TREC file already exists: ${DIR}/${TREC_FILE}, skipping..."
+              TREC_EXISTS=true
+              break
+            fi
+          done
+
+          if [ "$TREC_EXISTS" = true ]; then
+            continue  # Skip to the next iteration
+          fi
+
+          # Check if the input file exists before running
+          if [ -f "$INPUT_PATH" ]; then
+            echo "Processing Type: $TYPE, Shot: $SHOT, Run: $RUN, Year: $YEAR"
+
+            # Execute the processing command
+            srun python -u pcir/ance_ikat.py \
+              --config=pcir/ance_ikat_config.toml \
+              --test_file_path "$INPUT_PATH" \
+              --year "$YEAR"
+          else
+            echo "Input file not found: $INPUT_PATH, skipping..."
+          fi
+
+        elif [ "$TYPE" == "automatic" ]; then
+          # Automatic type uses a different TOML config and requires split_rewrite for prompt1
+
+          for PROMPT in "${PROMPTS[@]}"; do
+            if [ "$PROMPT" == "prompt1" ]; then
+              # Define two variants: with and without --split_rewrite
+              for MODE in "with_split" "without_split"; do
+
+                if [ "$MODE" == "with_split" ]; then
+                  EXTRA_ARGS="--split_rewrite"
+                  SPLIT_SUFFIX="_split"
+                  echo "Processing with --split_rewrite for Type: $TYPE, Prompt: $PROMPT, Shot: $SHOT"
+                else
+                  EXTRA_ARGS=""
+                  SPLIT_SUFFIX=""
+                  echo "Processing without --split_rewrite for Type: $TYPE, Prompt: $PROMPT, Shot: $SHOT"
+                fi
+
+                # Define the INPUT_PATH
+                INPUT_PATH="data/batch/gpt-4o-mini/${YEAR}/processed/batch_${TYPE}_0shot_${PROMPT}_run${RUN}.jsonl"
+
+                # Define the TREC_FILE path
+                TREC_FILE="ance_batch_${TYPE}_0shot_${PROMPT}_run${RUN}${SPLIT_SUFFIX}_ttype_reformulate.trec"
+
+                # Check if the TREC file exists in any of the directories
+                TREC_EXISTS=false
+                for DIR in "${TREC_DIRS[@]}"; do
+                  if [ -f "${DIR}/${TREC_FILE}" ]; then
+                    echo "TREC file already exists: ${DIR}/${TREC_FILE}, skipping..."
+                    TREC_EXISTS=true
+                    break
+                  fi
+                done
+
+                if [ "$TREC_EXISTS" = true ]; then
+                  continue  # Skip to the next iteration
+                fi
+
+                # Check if the input file exists before running
+                if [ -f "$INPUT_PATH" ]; then
+                  echo "Running: Type=$TYPE, Shot=0shot, Run=$RUN, Prompt=$PROMPT, Mode=$MODE, Year=$YEAR"
+
+                  # Execute the processing command with the automatic config
+                  srun python -u pcir/ance_ikat.py \
+                    --config=pcir/ance_ikat_config_automatic.toml \
+                    --test_file_path "$INPUT_PATH" \
+                    --year "$YEAR" \
+                    $EXTRA_ARGS
+                else
+                  echo "Input file not found: $INPUT_PATH, skipping..."
+                fi
+
+              done  # End of MODE loop
+
+            else
+              # For prompt2, run once without --split_rewrite
+              echo "Processing without --split_rewrite for Type: $TYPE, Prompt: $PROMPT, Shot: $SHOT"
+
+              # Define the INPUT_PATH
+              INPUT_PATH="data/batch/gpt-4o-mini/${YEAR}/processed/batch_${TYPE}_0shot_${PROMPT}_run${RUN}.jsonl"
+
+              # Define the TREC_FILE path (no split suffix)
+              TREC_FILE="ance_batch_${TYPE}_0shot_${PROMPT}_run${RUN}_ttype_reformulate.trec"
+
+              # Check if the TREC file exists in any of the directories
+              TREC_EXISTS=false
+              for DIR in "${TREC_DIRS[@]}"; do
+                if [ -f "${DIR}/${TREC_FILE}" ]; then
+                  echo "TREC file already exists: ${DIR}/${TREC_FILE}, skipping..."
+                  TREC_EXISTS=true
+                  break
+                fi
+              done
+
+              if [ "$TREC_EXISTS" = true ]; then
+                continue  # Skip to the next iteration
+              fi
+
+              # Check if the input file exists before running
+              if [ -f "$INPUT_PATH" ]; then
+                echo "Running: Type=$TYPE, Shot=0shot, Run=$RUN, Prompt=$PROMPT, Year=$YEAR"
+
+                # Execute the processing command with the automatic config
+                srun python -u pcir/ance_ikat.py \
+                  --config=pcir/ance_ikat_config_automatic.toml \
+                  --test_file_path "$INPUT_PATH" \
+                  --year "$YEAR"
+              else
+                echo "Input file not found: $INPUT_PATH, skipping..."
+              fi
+
+            fi  # End of PROMPT conditionals
+          done  # End of PROMPT loop
+
+        else
+          # For other types, handle prompts and split_rewrite
+
+          for PROMPT in "${PROMPTS[@]}"; do
+            if [ "$PROMPT" == "prompt1" ]; then
+              # Define two variants: with and without --split_rewrite
+              for MODE in "with_split" "without_split"; do
+
+                if [ "$MODE" == "with_split" ]; then
+                  EXTRA_ARGS="--split_rewrite"
+                  SPLIT_SUFFIX="_split"
+                  echo "Processing with --split_rewrite for Type: $TYPE, Prompt: $PROMPT, Shot: $SHOT"
+                else
+                  EXTRA_ARGS=""
+                  SPLIT_SUFFIX=""
+                  echo "Processing without --split_rewrite for Type: $TYPE, Prompt: $PROMPT, Shot: $SHOT"
+                fi
+
+                # Define the INPUT_PATH
+                INPUT_PATH="data/batch/gpt-4o-mini/${YEAR}/processed/batch_${TYPE}_${SHOT}_${PROMPT}_run${RUN}.jsonl"
+
+                # Define the TREC_FILE path
+                TREC_FILE="ance_batch_${TYPE}_${SHOT}_${PROMPT}_run${RUN}${SPLIT_SUFFIX}_ttype_reformulate.trec"
+
+                # Check if the TREC file exists in any of the directories
+                TREC_EXISTS=false
+                for DIR in "${TREC_DIRS[@]}"; do
+                  if [ -f "${DIR}/${TREC_FILE}" ]; then
+                    echo "TREC file already exists: ${DIR}/${TREC_FILE}, skipping..."
+                    TREC_EXISTS=true
+                    break
+                  fi
+                done
+
+                if [ "$TREC_EXISTS" = true ]; then
+                  continue  # Skip to the next iteration
+                fi
+
+                # Check if the input file exists before running
+                if [ -f "$INPUT_PATH" ]; then
+                  echo "Running: Type=$TYPE, Shot=$SHOT, Run=$RUN, Prompt=$PROMPT, Mode=$MODE, Year=$YEAR"
+
+                  # Execute the processing command with the default config
+                  srun python -u pcir/ance_ikat.py \
+                    --config=pcir/ance_ikat_config.toml \
+                    --test_file_path "$INPUT_PATH" \
+                    --year "$YEAR" \
+                    $EXTRA_ARGS
+                else
+                  echo "Input file not found: $INPUT_PATH, skipping..."
+                fi
+
+              done  # End of MODE loop
+            else
+              # For prompts other than prompt1 (e.g., prompt2), run once without --split_rewrite
+              echo "Processing without --split_rewrite for Type: $TYPE, Prompt: $PROMPT, Shot: $SHOT"
+
+              # Define the INPUT_PATH
+              INPUT_PATH="data/batch/gpt-4o-mini/${YEAR}/processed/batch_${TYPE}_${SHOT}_${PROMPT}_run${RUN}.jsonl"
+
+              # Define the TREC_FILE path (no split suffix)
+              TREC_FILE="ance_batch_${TYPE}_${SHOT}_${PROMPT}_run${RUN}_ttype_reformulate.trec"
+
+              # Check if the TREC file exists in any of the directories
+              TREC_EXISTS=false
+              for DIR in "${TREC_DIRS[@]}"; do
+                if [ -f "${DIR}/${TREC_FILE}" ]; then
+                  echo "TREC file already exists: ${DIR}/${TREC_FILE}, skipping..."
+                  TREC_EXISTS=true
+                  break
+                fi
+              done
+
+              if [ "$TREC_EXISTS" = true ]; then
+                continue  # Skip to the next iteration
+              fi
+
+              # Check if the input file exists before running
+              if [ -f "$INPUT_PATH" ]; then
+                echo "Running: Type=$TYPE, Shot=$SHOT, Run=$RUN, Prompt=$PROMPT, Year=$YEAR"
+
+                # Execute the processing command with the default config
+                srun python -u pcir/ance_ikat.py \
+                  --config=pcir/ance_ikat_config.toml \
+                  --test_file_path "$INPUT_PATH" \
+                  --year "$YEAR"
+              else
+                echo "Input file not found: $INPUT_PATH, skipping..."
+              fi
+            fi  # End of PROMPT conditionals
+          done  # End of PROMPT loop
+        fi  # End of TYPE conditionals
+      done  # End of SHOT loop
+    done  # End of RUN loop
+  done  # End of TYPE loop
+done  # End of YEAR loop

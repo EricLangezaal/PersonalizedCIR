@@ -1,0 +1,114 @@
+#!/bin/bash
+
+#SBATCH --partition=gpu
+#SBATCH --gpus=1
+#SBATCH --job-name=test_ikat_dense_LLM_2023
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=18
+#SBATCH --time=04:00:00
+#SBATCH --output=outputs/batch_test_ikat_dense_LLM_2023_%A.out
+
+# Load necessary modules
+module purge
+module load 2024
+module load Anaconda3/2024.06-1  
+
+# Activate the Conda environment
+source activate ir2
+
+# Define the input parameters
+TYPES=("LLM")
+RUNS=(1 2 3 4 5)
+SHOT_VERSIONS=("0shot" "1shot" "3shot" "5shot")
+PROMPTS=("prompt1" "prompt2")
+YEARS=(2023)
+
+# Loop over each year
+for YEAR in "${YEARS[@]}"; do
+  echo "Starting processing for Year: $YEAR"
+
+  # Loop over types (only LLM)
+  for TYPE in "${TYPES[@]}"; do
+    # Loop over runs
+    for RUN in "${RUNS[@]}"; do
+      # Loop over shot versions
+      for SHOT in "${SHOT_VERSIONS[@]}"; do
+        # Loop over prompts
+        for PROMPT in "${PROMPTS[@]}"; do
+
+          if [ "$PROMPT" == "prompt1" ]; then
+            # Define two variants: with and without --split_rewrite
+            for MODE in "with_split" "without_split"; do
+
+              if [ "$MODE" == "with_split" ]; then
+                EXTRA_ARGS="--split_rewrite"
+                SPLIT_SUFFIX="_split"
+                echo "Processing with --split_rewrite for Prompt: $PROMPT, Shot: $SHOT"
+              else
+                EXTRA_ARGS=""
+                SPLIT_SUFFIX=""
+                echo "Processing without --split_rewrite for Prompt: $PROMPT, Shot: $SHOT"
+              fi
+
+              # Define the INPUT_PATH
+              INPUT_PATH="data/batch/gpt-4o-mini/${YEAR}/processed/batch_${TYPE}_${SHOT}_${PROMPT}_run${RUN}.jsonl"
+
+              # Define the TREC_FILE path
+              TREC_FILE="data/results/trec_files/${YEAR}/ance_batch_${TYPE}_${SHOT}_${PROMPT}_run${RUN}${SPLIT_SUFFIX}_ttype_reformulate.trec"
+
+              # Check if the TREC file already exists
+              if [ -f "$TREC_FILE" ]; then
+                echo "TREC file already exists: $TREC_FILE, skipping..."
+                continue
+              fi
+
+              # Check if the input file exists before running
+              if [ -f "$INPUT_PATH" ]; then
+                echo "Running: Type=$TYPE, Shot=$SHOT, Run=$RUN, Prompt=$PROMPT, Mode=$MODE, Year=$YEAR"
+
+                # Execute the processing command
+                srun python -u pcir/ance_ikat.py \
+                  --config=pcir/ance_ikat_config.toml \
+                  --test_file_path "$INPUT_PATH" \
+                  --year "$YEAR" \
+                  $EXTRA_ARGS
+              else
+                echo "Input file not found: $INPUT_PATH, skipping..."
+              fi
+
+            done
+          else
+            # For prompts other than prompt1 (e.g., prompt2), run once without --split_rewrite
+            echo "Processing without --split_rewrite for Prompt: $PROMPT, Shot: $SHOT"
+
+            # Define the INPUT_PATH
+            INPUT_PATH="data/batch/gpt-4o-mini/${YEAR}/processed/batch_${TYPE}_${SHOT}_${PROMPT}_run${RUN}.jsonl"
+
+            # Define the TREC_FILE path (no split suffix)
+            TREC_FILE="data/results/trec_files/${YEAR}/ance_batch_${TYPE}_${SHOT}_${PROMPT}_run${RUN}_ttype_reformulate.trec"
+
+            # Check if the TREC file already exists
+            if [ -f "$TREC_FILE" ]; then
+              echo "TREC file already exists: $TREC_FILE, skipping..."
+              continue
+            fi
+
+            # Check if the input file exists before running
+            if [ -f "$INPUT_PATH" ]; then
+              echo "Running: Type=$TYPE, Shot=$SHOT, Run=$RUN, Prompt=$PROMPT, Year=$YEAR"
+
+              # Execute the processing command
+              srun python -u pcir/ance_ikat.py \
+                --config=pcir/ance_ikat_config.toml \
+                --test_file_path "$INPUT_PATH" \
+                --year "$YEAR"
+            else
+              echo "Input file not found: $INPUT_PATH, skipping..."
+            fi
+          fi
+
+        done
+      done
+    done
+  done
+done

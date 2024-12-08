@@ -1,0 +1,65 @@
+#!/bin/bash
+#SBATCH --partition=cbuild
+#SBATCH --gpus=0
+#SBATCH --job-name=download_raw_dataset
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=10
+#SBATCH --time=03:00:00
+#SBATCH --output=outputs/download_raw_dataset_%A.out
+
+DEST_DIR="/scratch-shared/ikat23/jsonl_passages/"
+source jobs/set_secrets.sh
+
+BASE_URL="https://ikattrecweb.grill.science/UvA"
+CHECKSUM_URL="$BASE_URL/ikat_2023_passages_jsonl.sha256sums"
+# Ensure that environment variables for authentication are set
+if [ -z "$IKAT_USERNAME" ] || [ -z "$IKAT_PASSWORD" ]; then
+    echo "Error: Username and password environment variables are not set."
+    exit 1
+fi
+
+# Create the destination directory if it doesn't exist
+mkdir -p $DEST_DIR
+cd $DEST_DIR
+
+# Download JSONL files (16 parts) in a loop with authentication
+for i in $(seq -w 0 15); do
+    FILE_NAME="ikat_2023_passages_${i}.jsonl.bz2"
+    echo "Downloading $FILE_NAME..."
+    wget -nv --user="$IKAT_USERNAME" --password="$IKAT_PASSWORD" "$BASE_URL/$FILE_NAME" -O "$DEST_DIR/$FILE_NAME"
+done
+
+# Download the checksum file with authentication
+echo "Downloading checksum file..."
+wget -nv --user="$IKAT_USERNAME" --password="$IKAT_PASSWORD" "$CHECKSUM_URL" -O "$DEST_DIR/ikat_2023_passages_jsonl.sha256sums"
+# Verify file integrity with checksums
+echo "Verifying checksums..."
+sha256sum -c ikat_2023_passages_jsonl.sha256sums --ignore-missing
+
+echo "Download and verification completed. Starting decompression..."
+
+# Decompress all .bz2 files
+for file in *.bz2; do
+    echo "Decompressing $file..."
+    bzip2 -d "$file"
+done
+
+echo "Finished decompressing."
+rm ikat_2023_passages_jsonl.sha256sums
+
+echo "Creating a single collection file..."
+
+for file in *.jsonl; do
+  cat "$file"
+  echo  # Adds a newline after each file
+done > collection.jsonl
+
+#echo "Removing separate jsonl files"
+rm ikat_2023_passages_*.jsonl
+
+# Add permissions to repository, uncomment and modify as needed
+#setfacl -R -m u:...:rwx .
+#setfacl -R -m u:...:rwx .
+#setfacl -R -m u:...:rwx .
+
+echo "Done."

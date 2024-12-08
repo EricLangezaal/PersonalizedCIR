@@ -1,0 +1,25 @@
+# title = 
+# "params for generating doc embeddings. \
+# The following things should be provided:
+# - tokenized passage corpus
+# - a pretrained passage encoder"
+
+
+# [Model]
+model_type = "ANCE"
+pretrained_passage_encoder = "3ricL/ad-hoc-ance-msmarco"
+max_seq_length = 384
+
+# [Gen]
+per_gpu_eval_batch_size = 1500
+local_rank = -1 # Not use distributed training
+disable_tqdm = false
+n_gpu = 4
+
+# [Input Data]
+tokenized_passage_collection_dir_path = "/scratch-shared/ikat23/tokenized" # NOTE: user-specific
+total_passages = 116839004
+
+
+# [Output]
+data_output_path = "/scratch-shared/ikat23/embeds" # NOTE: user-specific

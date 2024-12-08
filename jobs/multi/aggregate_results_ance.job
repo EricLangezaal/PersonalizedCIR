@@ -1,0 +1,87 @@
+#!/bin/bash
+
+#SBATCH --partition=gpu
+#SBATCH --gpus=1
+#SBATCH --job-name=aggregate_ikat_dense
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=18
+#SBATCH --time=01:00:00
+#SBATCH --output=outputs/batch_aggregate_ikat_dense_%A.out
+
+# Load necessary modules
+module purge
+module load 2024
+module load Anaconda3/2024.06-1
+
+# Activate the Conda environment
+source activate ir2
+
+# Define the input types, shot versions, prompts, and years
+TYPES=("All" "automatic" "human" "LLM" "None" "SAR")
+LLM_SHOTS=("0shot" "1shot" "3shot" "5shot")  # Shots for LLM
+SAR_SHOTS=("0shot" "1shot" "3shot" "5shot")  # Shots for SAR
+PROMPTS=("prompt1" "prompt2")
+YEARS=(2023 2024)
+
+# Loop over years, types, shots, and prompts
+for YEAR in "${YEARS[@]}"; do
+  for TYPE in "${TYPES[@]}"; do
+    if [ "$TYPE" == "LLM" ]; then
+      for SHOT in "${LLM_SHOTS[@]}"; do
+        for PROMPT in "${PROMPTS[@]}"; do
+          if [ "$PROMPT" == "prompt1" ]; then
+            # Run twice for prompt1: with and without split
+            for SPLIT in "" "_split"; do
+              INPUT_PREFIX="ance_batch_LLM_${SHOT}_${PROMPT}"
+              SUFFIX="${SPLIT}_ttype_reformulate"
+              echo "Aggregating results for Year: $YEAR, Type: $TYPE, Shot: $SHOT, Prompt: $PROMPT, Split: ${SPLIT}"
+              srun python -u pcir/aggregate_results.py --input "$INPUT_PREFIX" --suffix "$SUFFIX" --year "$YEAR"
+            done
+          else
+            # Run once for prompt2
+            INPUT_PREFIX="ance_batch_LLM_${SHOT}_${PROMPT}"
+            SUFFIX="_ttype_reformulate"
+            echo "Aggregating results for Year: $YEAR, Type: $TYPE, Shot: $SHOT, Prompt: $PROMPT"
+            srun python -u pcir/aggregate_results.py --input "$INPUT_PREFIX" --suffix "$SUFFIX" --year "$YEAR"
+          fi
+        done
+      done
+    elif [ "$TYPE" == "SAR" ]; then
+      for SHOT in "${SAR_SHOTS[@]}"; do
+        # SAR does not have prompts and runs once per shot
+        INPUT_PREFIX="ance_batch_SAR_${SHOT}"
+        SUFFIX="_ttype_reformulate"
+        echo "Aggregating results for Year: $YEAR, Type: $TYPE, Shot: $SHOT"
+        srun python -u pcir/aggregate_results.py --input "$INPUT_PREFIX" --suffix "$SUFFIX" --year "$YEAR"
+      done
+    else
+      # Other types have only 0shot and use prompts
+      SHOT="0shot"
+      for PROMPT in "${PROMPTS[@]}"; do
+        if [ "$PROMPT" == "prompt1" ]; then
+          # Run twice for prompt1: with and without split
+          for SPLIT in "" "_split"; do
+            INPUT_PREFIX="ance_batch_${TYPE}_${SHOT}_${PROMPT}"
+            SUFFIX="${SPLIT}_ttype_reformulate"
+            echo "Aggregating results for Year: $YEAR, Type: $TYPE, Shot: $SHOT, Prompt: $PROMPT, Split: ${SPLIT}"
+            if [ "$TYPE" == "automatic" ]; then
+              srun python -u pcir/aggregate_results.py --input "$INPUT_PREFIX" --suffix "$SUFFIX" --year "$YEAR" --automatic_method
+            else
+              srun python -u pcir/aggregate_results.py --input "$INPUT_PREFIX" --suffix "$SUFFIX" --year "$YEAR"
+            fi
+          done
+        else
+          # Run once for prompt2
+          INPUT_PREFIX="ance_batch_${TYPE}_${SHOT}_${PROMPT}"
+          SUFFIX="_ttype_reformulate"
+          echo "Aggregating results for Year: $YEAR, Type: $TYPE, Shot: $SHOT, Prompt: $PROMPT"
+          if [ "$TYPE" == "automatic" ]; then
+            srun python -u pcir/aggregate_results.py --input "$INPUT_PREFIX" --suffix "$SUFFIX" --year "$YEAR" --automatic_method
+          else
+            srun python -u pcir/aggregate_results.py --input "$INPUT_PREFIX" --suffix "$SUFFIX" --year "$YEAR"
+          fi
+        fi
+      done
+    fi
+  done
+done
