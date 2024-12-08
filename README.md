@@ -28,7 +28,8 @@ Main packages:
 
 This repository already contains the 2023 TREC iKAT conversation data inside the [data](/data/) folder. The 116M document collection has to be downloaded from the [iKAT TREC website](https://ikattrecweb.grill.science/UvA/). Note that the document collection is not public domain, requiring an account to be accessed. This repository contains Slurm job scripts to download both the raw JSONL passage data, as well as the prepared BM25 index. If you are not using Snellius Slurm, please also change the output directory on top of the job script. Running these scripts directly from terminal is possible by coping their contents to a bash script.
 
-[!IMPORTANT] Both scripts below require an account to download the collection files. Please make sure to set the `IKAT_USERNAME` and `IKAT_PASSWORD` variables prior to downloading, for example by defining these in a `set_secrets.sh` script.  
+> [!IMPORTANT]
+>  Both scripts below require an account to download the collection files. Please make sure to set the `IKAT_USERNAME` and `IKAT_PASSWORD` variables prior to downloading, for example by defining these in a `set_secrets.sh` script.  
 
 The passages can be downloaded into a single `collection.jsonl` file using the script below. These files are only needed for the ANCE/dense retrieval. Make sure to modify the destination directory as needed.
 ```bash
