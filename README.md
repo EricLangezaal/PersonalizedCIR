@@ -71,9 +71,11 @@ python data/generate_data_table.py
 ```
 
 ## 1. Query reformulation.
-[!NOTE] If you do not want to run the query reformulation process yourself, it is possible to use the files we created, which are hosted in [this repository](data/results/) too (including subfolders for the in-context learning or Llama). Note that these are output files of the reformulation already, so this entire section can be skipped when using those. 
+> [!NOTE]
+>  If you do not want to run the query reformulation process yourself, it is possible to use the files we created, which are hosted in [this repository](data/results/) too (including subfolders for the in-context learning or Llama). Note that these are output files of the reformulation already, so this entire section can be skipped when using those. 
 
-[!NOTE] The query reformulation process inherently introduces differences between runs, as OpenAI's API will give different results for the same query. To get our exact results, please use the files already hosted in this repository.
+> [!NOTE]
+> The query reformulation process inherently introduces differences between runs, as OpenAI's API will give different results for the same query. To get our exact results, please use the files already hosted in this repository.
 
 The method of this research distinguishes between two different pipelines: Firstly, there are approaches which separately select PTKB (either intelligently or through a baseline) and then reformulate using an LLM. These approaches can be reproduced through section 1.1. Next, there is the Select And Reformulate (SAR) pipeline, which does both PTKB selection and reformulation in one pass, as explained in section 1.2. The prompt templates are provided in [prompt_template.md](prompt_template.md). All scripts output files according to a standard naming scheme (in the [data](data/) folder), such that filepaths often don't have to be specified. If this doesn't work, each script also accepts an input and output file overwrite.
 
