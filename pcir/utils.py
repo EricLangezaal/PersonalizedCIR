@@ -8,7 +8,6 @@ from typing import Union
 import json
 import os
 from collections import defaultdict
-import random
 
 import logging
 import numpy as np
@@ -91,10 +90,6 @@ def get_relevant_assessed_turn_ids(set176, new_ptkb=True, file=None, year="2023"
     if not data_list:
         raise ValueError("Data list is empty.")
     
-    # Optionally, remove any strict ordering checks
-    # Previously: if data_list[0].get('sample_id') != '9-1-1':
-    #              raise ValueError("Data list is not sorted. List should start with sample_id '9-1-1'.")
-    # Removed to accommodate different sample_id formats
 
     for data in data_list:
         # number is conversation like 9-1 or 0
@@ -122,24 +117,30 @@ def get_relevant_assessed_turn_ids(set176, new_ptkb=True, file=None, year="2023"
     return relevant_entries
 
 
-def parse_relevant_ids(relevant_ptkb_path='data/{YEAR}_test_topics_flattened.jsonl', subset=False, new_ptkb=False, verbose=True, year="2023"):
+def parse_relevant_ids(relevant_ptkb_path=None, subset=False, new_ptkb=False, verbose=True, year="2023"):
+    if relevant_ptkb_path is None:
+        relevant_ptkb_path = f"data/{year}_test_topics_flattened.jsonl"
     relevant_ids = get_assessed_turn_ids(year=year)  
     if subset:
         if verbose:
             print("Filtering empty provenance is ON")
             print(f"Corrected methodology filtering is {'ON' if new_ptkb else 'OFF'}")
-        relevant_ids = get_relevant_assessed_turn_ids(relevant_ids, new_ptkb=new_ptkb, file=relevant_ptkb_path, year=year)
+        relevant_ids = get_relevant_assessed_turn_ids(
+            relevant_ids,
+            new_ptkb=new_ptkb,
+            file=relevant_ptkb_path,
+            year=year
+        )
     elif verbose:
-        print("No filter applied to assessed 176 entries.")
+        print("No filter applied to assessed entries.")
+
     return relevant_ids
 
 def is_relevant(qid, relevant_ids):
     if qid in relevant_ids:
         return True
-    
-    if len(qid.split("-")) == 4:
-        return qid[:qid.rfind("-")] in relevant_ids
-    return False
+    base_id = qid[:qid.rfind("-")]
+    return base_id in relevant_ids
 
 def ensure_unique_path(file_path):
     """
@@ -161,8 +162,8 @@ def load_provenance_dict(file_path, type='LLM'):
         for line in f:
             data = json.loads(line)
             sample_id = data.get('sample_id', '')
-            if type == 'LLM' or type == 'STR':
-                select = data.get(f'LLM_select', '')
+            if type == 'LLM' or type == 'machine':
+                select = data.get(f'{type}_select', '')
             elif type == 'None':
                 select = []
             elif type == 'All':
@@ -173,6 +174,7 @@ def load_provenance_dict(file_path, type='LLM'):
     return provenance_dict
 
 
+import random
 
 def demonstrate(shot, random_examples=False, seed=None):
     """
