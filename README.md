@@ -81,7 +81,7 @@ python data/generate_data_table.py
 The method of this research distinguishes between two different pipelines: Firstly, there are approaches which separately select PTKB (either intelligently or through a baseline) and then reformulate using an LLM. These approaches can be reproduced through section 1.1. Next, there is the Select And Reformulate (SAR) pipeline, which does both PTKB selection and reformulation in one pass, as explained in section 1.2. The prompt templates are provided in [prompt_template.md](prompt_template.md). All scripts output files according to a standard naming scheme (in the [data](data/) folder), such that filepaths often don't have to be specified. If this doesn't work, each script also accepts an input and output file overwrite.
 
 ### 1.1 Two stage approaches.
-Firstly, the PTKB can be selected. There are five approaches as detailed in the paper: All, None, Human, Automatic and LLM (STR). 
+The paper distinguishes between five approaches that consist of a separate PTKB selection and reformulation stage: All, None, Human, Automatic and LLM (STR). The three baselines (None, All and Human) can be run by directly invoking the reformulation script. LLM/STR requires an explicit first step to be run, and automatic has its own custom script. See the list below for an example for each of the five approaches.
 - **None** (no PTKB): ```python pcir/methods/reformulate.py --annotation 'None"```
 - **All** (use all PTKB): ```python pcir/methods/reformulate.py --annotation 'All"```
 - **Human**: ```python pcir/methods/reformulate.py --annotation 'Human"```
