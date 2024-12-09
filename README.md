@@ -1,5 +1,5 @@
 # PersonalizedCIR
-This is a reproduction study of the original paper: ["How to Leverage Personal Textual Knowledge for Personalized Conversational Information Retrieval."](https://arxiv.org/abs/2407.16192). The original codebase can be found [here](https://github.com/fengranMark/PersonalizedCIR). The codebase has been substantially extended to allow for self-contained experiments.
+This is a reproduction study of the original paper: ["How to Leverage Personal Textual Knowledge for Personalized Conversational Information Retrieval."](https://arxiv.org/abs/2407.16192). The original codebase can be found [here](https://github.com/fengranMark/PersonalizedCIR). This codebase has been substantially extended to allow for self-contained experiments.
 
 # Environment and dependencies
 We highly suggest using a Conda environment through the provided installation script, since multiple requirements do not install correctly from PyPI automatically. To run this script, please invoke the following in the repositories main folder. This script will automatically install Anaconda if it cannot load nor find Conda.
@@ -65,13 +65,13 @@ We have also repeated our research for the new iteration of the iKAT TREC datase
 # Reproduction
 This section will outline how to reproduce every experiment, provided the datasets have been downloaded and preprocessed. Firstly the basic steps will be outlined, after which we will briefly elaborate how to run ablations such as in-context learning, using different LLM's or using OpenAI batch processing for efficiently repeating experiments. 
 
-## 0: Dataset statistics.
+## 0. Dataset statistics
 It is possible to automatically calculate some rudimentary statistics of the dataset, which form the basis of the table in our paper. This can be done by running:
 ```bash
 python data/generate_data_table.py
 ```
 
-## 1. Query reformulation.
+## 1. Query reformulation
 > [!NOTE]
 >  If you do not want to run the query reformulation process yourself, it is possible to use the files we created, which are hosted in [this repository](data/results/) too (including subfolders for the in-context learning or Llama). Note that these are output files of the reformulation already, so this entire section can be skipped when using those. 
 
@@ -98,7 +98,7 @@ python pcir/methods/select_reformulate_Xshot.py --shot 0
 Once the self-contained queries have been obtained through LLM reformulation, sparse or dense retrieval can be employed to evaluate the quality of the queries.
 
 ### 2.1 Sparse retrieval
-We can perform sparse retrieval to evaluate the personalized reformulated queries by running for example. For a JSONL file obtained through the automatic method, make sure to use the ```--automatic_method``` flag.
+We can perform sparse retrieval to evaluate the personalized reformulated queries by running for example. For a JSONL file obtained through the automatic method, make sure to use the `--automatic_method` flag.
 ```bash
 python pcir/eval/bm25_ikat.py --input_query_path data/results/2023_test_SAR_0shot.jsonl --index_dir_path path/to/bm25/index
 ```
@@ -108,13 +108,13 @@ We can perform dense retrieval to evaluate the personalized reformulated queries
 ```bash
 python pcir/eval/ance_ikat.py --config pcir/eval/ance_ikat_config.toml
 ```
-You will need to modify the 'passage_offset2pid_path' and 'passage_collection_path' in this configuration file accordingly. For a JSONL file obtained through the automatic method, make sure to use the ```--automatic_method``` flag too.
+You will need to modify the 'passage_offset2pid_path' and 'passage_collection_path' in this configuration file accordingly. For a JSONL file obtained through the automatic method, make sure to use the `--automatic_method` flag too.
 
-## 3. In context learning.
-The procedure to run in-context learning does not differ much from the pipelines outlined above. Just make sure to run either STR or SAR using the ```--shot x``` flag in all scripts from section 1 of this part, where 'x' denotes the number of in context learning examples (can be 0, 1, 3 or 5 currently) from the [2023 training dataset](data/2023_train_topics.json) (Note that a 2024 train set does not exist, so we used to 2023 examples for 2024 too). The retrieval evaluation is identical, using the reformulation jsonl file obtained with multiple shots. Note that the original paper always used the same fixed examples, but we also support using random examples through the ```--random_examples``` flag both SAR and STR.
+## 3. In context learning
+The procedure to run in-context learning does not differ much from the pipelines outlined above. Just make sure to run either STR or SAR using the `--shot x` flag in all scripts from section 1 of this part, where 'x' denotes the number of in context learning examples (can be 0, 1, 3 or 5 currently) from the [2023 training dataset](data/2023_train_topics.json) (Note that a 2024 train set does not exist, so we used to 2023 examples for 2024 too). The retrieval evaluation is identical, using the reformulation jsonl file obtained with multiple shots. Note that the original paper always used the same fixed examples, but we also support using random examples through the ```--random_examples``` flag both SAR and STR.
 
-## 4. Using a different LLM.
-The original paper used only OpenAI's `gpt-3.5-turbo-16k`. We extended this by also implementing `gpt-4o-mini` and `Llama-3.1 8B`. To use a different LLM, simply add the command line arguments `--llm_model model_string` for any script from section 1 of this part. If the model string is not a GPT version, it is assumed to be a HuggingFace identifier. This allows us to do `--llm_model meta-llama/Meta-Llama-3.1-8B-Instruct` to use `Llama-3.1 8B`. 
+## 4. Using a different LLM
+The original paper used only OpenAI's `gpt-3.5-turbo-16k`. We extended this by also implementing `gpt-4o-mini` and `Llama-3.1 8B`. To use a different LLM, simply add the command line arguments `--llm_model model_string` for any script from section 1 of this part. If the model string is not a GPT version, it is assumed to be a HuggingFace identifier. This allows us to do `--llm_model "meta-llama/Meta-Llama-3.1-8B-Instruct"` to use `Llama-3.1 8B`. 
 
 ## 5. Repeating experiments with batch processing 
 As an extension, we allow experiments to be repeated multiple times using OpenAI's cheaper batch processing API. All files related to this reformulation can be found in the [batch_processing](pcir/batched_processing/) folder. There are four `submit` scripts, which submit jobs for the SAR method, the LLM-based PTKB selection (STR), any the reformulation required for All, None, Human and STR. There is also a submission file for the automatic method. 
@@ -122,7 +122,7 @@ As an extension, we allow experiments to be repeated multiple times using OpenAI
 Next, there are four similar scripts to check if the corresponding job has completed and save it to a file if applicable. Use `batch_cancel.py` to cancel a job. 
 
 ### 5.1 Aggregation
-If you have run an experiment multiple times, you can aggregate the results to calculate means and standard deviations. Use `--automatic_method` if it concerns an automatic method run. Note that this script assumes the files to be named "{input}_run{i}.jsonl", where `i` goes from 1 to the number of runs specified (5 by default).
+If you have run an experiment multiple times, you can aggregate the results to calculate means and standard deviations. Use `--automatic_method` if it concerns an automatic method run. Note that this script assumes the files to be named `{input}_run{i}.jsonl`, where `i` goes from 1 to the number of runs specified (5 by default).
 ```bash
 python pcir/eval/aggregate_results.py --input data/batch/gpt-4o-mini/processed/batch_SAR_5shot --year "2023" --num_runs 5
 ``` 
