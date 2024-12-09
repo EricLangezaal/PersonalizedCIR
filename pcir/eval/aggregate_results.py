@@ -4,7 +4,7 @@ import argparse
 import logging
 from collections import defaultdict
 import numpy as np
-from utils import calculate_trec_res_NDCG, get_run_files
+from pcir.utils import calculate_trec_res_NDCG, get_run_files
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 

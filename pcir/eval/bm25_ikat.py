@@ -2,7 +2,7 @@ import logging
 import json
 from pyserini.search.lucene import LuceneSearcher
 import argparse
-from utils import is_relevant, calculate_trec_res_NDCG, get_assessed_turn_ids, get_output_path_trec
+from pcir.utils import is_relevant, calculate_trec_res_NDCG, get_assessed_turn_ids, get_output_path_trec
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', force=True)
 
