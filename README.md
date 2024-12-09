@@ -7,7 +7,7 @@ We highly suggest using a Conda environment through the provided installation sc
 bash install_environment.sh
 ```
 
-If you want to install the dependencies manually, please see the list below.
+**Not recommended:** If you want to install the dependencies manually, please see the list below.
 Main packages:
 - python 3.11.x
 - torch 2.5.1
@@ -21,6 +21,10 @@ Main packages:
 - tenacity 9.0.0
 - accelerate 0.26.2
 
+When installing manually, don't forget to install the repository itself as a package:
+```bash
+pip install -e .
+```
 
 # Preparation
 
