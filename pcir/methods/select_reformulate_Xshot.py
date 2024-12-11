@@ -37,7 +37,7 @@ def main():
         print("Error: --shot must be 0, 1, 3 or 5.")
         sys.exit(1)
 
-    model = init_llm(args.llm_model)
+    model = init_llm(args.llm_model, args.seed)
     set_176 = get_assessed_turn_ids()
 
     processed_sample_ids = load_processed_sample_ids(args.output_path)
@@ -120,7 +120,7 @@ def get_args():
     # Set output_path dynamically based on shot
     if args.output_path is None:
         llm_part = "" if args.llm_model == "gpt-3.5-turbo-16k" else "_" + args.llm_model.split("/")[0]
-        args.output_path = f"data/results/2023_test_SAR_{args.shot}shot{llm_part}.jsonl"
+        args.output_path = f"data/results/2023_test_SAR_{args.shot}shot{llm_part}_run{args.seed}.jsonl"
 
     print("Output path:", args.output_path)
     return args

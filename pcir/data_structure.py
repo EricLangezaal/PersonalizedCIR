@@ -15,7 +15,7 @@ from torch.utils.data import IterableDataset
 import torch.distributed as dist
 import re
 
-from utils import parse_relevant_ids, is_relevant, get_assessed_turn_ids
+from pcir.utils import parse_relevant_ids, is_relevant, get_assessed_turn_ids
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', force=True)
 

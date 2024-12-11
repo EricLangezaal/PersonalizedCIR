@@ -1,0 +1,30 @@
+#!/bin/bash
+
+#SBATCH --partition=gpu
+#SBATCH --gpus=1
+#SBATCH --job-name=select
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=18
+#SBATCH --time=00:30:00
+#SBATCH --array=1-2
+#SBATCH --output=outputs/slurm_output_%A_%a.out
+
+# This script selects PTKB using a LLM (first stage of STR).
+
+module purge
+module load 2024
+module load Anaconda3/2024.06-1
+
+source jobs/set_secrets.sh
+
+if [ -z "$OPENAI_API_KEY" ]; then
+  echo "Error: openAI key is empty!"
+  exit 1
+fi
+
+source activate ir2-2
+
+# Use SLURM_ARRAY_TASK_ID as the seed
+SEED=$SLURM_ARRAY_TASK_ID
+
+srun python -u pcir/methods/select_ptkb_Xshot.py --shot 5 --llm_model "meta-llama/Meta-Llama-3.1-8B-Instruct" --seed "$SEED"

@@ -50,14 +50,14 @@ def process_prompt(model, prompt, prompt_type):
 
 def main():
     args = get_args()
-    model = init_llm(args.llm_model)
+    model = init_llm(args.llm_model, args.seed)
 
     set_176 = get_assessed_turn_ids()
     processed_sample_ids = load_processed_sample_ids(args.output_path)
 
     if args.annotation in ['STR', 'LLM']:
         llm_part = "" if args.llm_model == "gpt-3.5-turbo-16k" else "_" + args.llm_model.split("/")[0]
-        provenance_file = f"data/results/2023_test_{args.annotation}_select_{args.shot}shot{llm_part}.jsonl"
+        provenance_file = f"data/results/2023_test_{args.annotation}_select_{args.shot}shot{llm_part}_run{args.seed}.jsonl"
     else:
         # human, None and All can be derived from test data provencance
         provenance_file = args.input_path
@@ -156,12 +156,14 @@ def get_args():
     parser.add_argument('--prompt_type', type=int, default=1)
     parser.add_argument('--output_path', type=str, default=None)
     parser.add_argument('--llm_model', type=str, default="gpt-3.5-turbo-16k")
+    parser.add_argument('--seed', type=int, default=None, help='Random seed for reproducibility')
+
     args = parser.parse_args()
 
     if args.output_path is None:
         annotation = args.annotation.replace("LLM", "STR")
         llm_part = "" if args.llm_model == "gpt-3.5-turbo-16k" else "_" + args.llm_model.split("/")[0]
-        args.output_path = f"data/results/2023_test_{annotation}_{args.shot}shot_prompt_type{args.prompt_type}{llm_part}.jsonl"
+        args.output_path = f"data/results/2023_test_{annotation}_{args.shot}shot_prompt_type{args.prompt_type}{llm_part}_run{args.seed}.jsonl"
 
     print("Output path:", args.output_path)
     return args

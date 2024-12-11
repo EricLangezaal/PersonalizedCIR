@@ -15,9 +15,9 @@ import numpy as np
 import pytrec_eval
 from transformers import RobertaConfig, RobertaTokenizer
 
-from models import ANCE
+from pcir.models import ANCE
 # NOTE: originally this was import "test_cast23_rewrite" but that does not exist
-from data_structure import ANCERewriteDataset, pad_seq_ids_with_mask
+from pcir.data_structure import ANCERewriteDataset, pad_seq_ids_with_mask
 from pcir.utils import set_seed, get_output_path_trec, calculate_trec_res_NDCG
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', force=True)

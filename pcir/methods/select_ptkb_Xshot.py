@@ -2,11 +2,12 @@ import json
 import time
 import re
 import argparse
-from pcir.utils import load_processed_sample_ids, get_assessed_turn_ids, demonstrate, query_llm, init_llm
+from pcir.utils import load_processed_sample_ids, get_assessed_turn_ids, demonstrate, query_llm, init_llm, ensure_unique_path
 import sys
 from openai import OpenAI
 from tenacity import retry, stop_after_attempt, wait_fixed
 
+client = OpenAI()
 
 @retry(stop=stop_after_attempt(5), wait=wait_fixed(2))
 def process_prompt(model, prompt):
@@ -28,13 +29,14 @@ def main():
         print("Error: --shot must be 0, 1, 3 or 5.")
         sys.exit(1)
 
-    model = init_llm(args.llm_model)
+    model = init_llm(args.llm_model, args.seed)
 
     processed_sample_ids = load_processed_sample_ids(args.output_path)
     set_176 = get_assessed_turn_ids()
 
+
     with open(args.input_path) as f:
-        for line_num,line in enumerate(f):
+        for line_num, line in enumerate(f):
             if line_num < 0:
                 continue
             data = json.loads(line)
@@ -73,7 +75,6 @@ def main():
                       "(Now you need to give me a list of the serial numbers you have chosen. " \
                       "The output format should always be: Provenance: $The user information number you have selected."
 
-
             print(sample_id)
             print(prompt)
             try:
@@ -87,10 +88,11 @@ def main():
                 print(f"Sample ID: {sample_id} --> FAILED after retries")
                 print(f"Error: {e}")
                 data['LLM_select'] = 'None'
-            with open(args.output_path, 'a+') as outfile:
+
+
+            with open(args.output_path, 'a+', encoding='utf-8') as outfile:
                 json.dump(data, outfile)
                 outfile.write('\n')
-            time.sleep(0.1)
 
 def get_args():
     parser = argparse.ArgumentParser()
@@ -105,7 +107,7 @@ def get_args():
     # Set output_path dynamically based on shot
     if args.output_path is None:
         llm_part = "" if args.llm_model == "gpt-3.5-turbo-16k" else "_" + args.llm_model.split("/")[0]
-        args.output_path = f"data/results/2023_test_LLM_select_{args.shot}shot{llm_part}.jsonl"
+        args.output_path = f"data/results/2023_test_LLM_select_{args.shot}shot{llm_part}_run{args.seed}.jsonl"
 
     print("Output path:", args.output_path)
     return args
@@ -113,5 +115,3 @@ def get_args():
 
 if __name__ == '__main__':
     main()
-
-

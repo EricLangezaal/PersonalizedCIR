@@ -154,7 +154,7 @@ def ensure_unique_path(file_path):
         counter += 1
         new_path = f"{base_name}_run{counter}{ext}"
     
-    return new_path
+    return new_path, counter
 
 def load_provenance_dict(file_path, type='LLM'):
     provenance_dict = {}
@@ -428,7 +428,7 @@ def get_run_files(base_name, directory, num_runs=5, suffix=''):
         run_files.append(run_file)
     return run_files
 
-def init_llm(model_id:str) -> Union[str, transformers.Pipeline]:
+def init_llm(model_id:str, seed:int) -> Union[str, transformers.Pipeline]:
     if "llama" in model_id:
         model = transformers.pipeline(
             "text-generation",
@@ -436,7 +436,7 @@ def init_llm(model_id:str) -> Union[str, transformers.Pipeline]:
             model_kwargs={"torch_dtype": torch.bfloat16},
             device_map="auto",
         )
-        set_seed(42)
+        set_seed(seed)
         return model
     else:
         return model_id
