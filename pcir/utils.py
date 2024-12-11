@@ -162,8 +162,8 @@ def load_provenance_dict(file_path, type='LLM'):
         for line in f:
             data = json.loads(line)
             sample_id = data.get('sample_id', '')
-            if type == 'LLM' or type == 'machine':
-                select = data.get(f'{type}_select', '')
+            if type == 'LLM' or type == 'STR':
+                select = data.get(f'LLM_select', '')
             elif type == 'None':
                 select = []
             elif type == 'All':

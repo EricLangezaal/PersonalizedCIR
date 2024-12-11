@@ -23,8 +23,6 @@ def main(args):
     ptkb_turns_train = train_data["turns"].apply(lambda x: len([t for t in x if t["ptkb_provenance"]])).sum()
     ptkb_turns_test = test_data["turns"].apply(lambda x: len([t for t in x if t["ptkb_provenance"]])).sum()
 
-    assessed_ptkb_turns = test_data["turns"].apply(lambda x: len([t for t in x if t["ptkb_provenance"] and t[""]])).sum()
-
     num_docs = LuceneSearcher(args.passage_index).num_docs
 
     data = {
