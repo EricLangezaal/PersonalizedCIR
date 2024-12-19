@@ -12,14 +12,17 @@ Main packages:
 - python 3.11.x
 - torch 2.5.1
 - transformers 4.46.2
-- numpy 2.1.3
+- numpy 2.0.2
 - faiss-gpu 1.9.0
-- pyserini 0.42.0
-- openai 1.54.3
+- pyserini 0.43.0
+- openai 1.54.1
 - pytrec-eval 0.5
 - toml 0.10.2
 - tenacity 9.0.0
-- accelerate 0.26.2
+- pandas 2.2.3
+- tqdm 4.66.6
+- accelerate 1.2.0
+- scipy 1.14.1
 
 When installing manually, don't forget to install the repository itself as a package:
 ```bash

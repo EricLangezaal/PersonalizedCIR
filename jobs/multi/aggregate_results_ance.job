@@ -14,7 +14,7 @@ module load 2024
 module load Anaconda3/2024.06-1
 
 # Activate the Conda environment
-source activate ir2
+source activate pcir
 
 # Define the input types, shot versions, prompts, and years
 TYPES=("All" "automatic" "human" "LLM" "None" "SAR")
@@ -35,14 +35,14 @@ for YEAR in "${YEARS[@]}"; do
               INPUT_PREFIX="ance_batch_LLM_${SHOT}_${PROMPT}"
               SUFFIX="${SPLIT}_ttype_reformulate"
               echo "Aggregating results for Year: $YEAR, Type: $TYPE, Shot: $SHOT, Prompt: $PROMPT, Split: ${SPLIT}"
-              srun python -u pcir/aggregate_results.py --input "$INPUT_PREFIX" --suffix "$SUFFIX" --year "$YEAR"
+              srun python -u pcir/eval/aggregate_results.py --input "$INPUT_PREFIX" --suffix "$SUFFIX" --year "$YEAR"
             done
           else
             # Run once for prompt2
             INPUT_PREFIX="ance_batch_LLM_${SHOT}_${PROMPT}"
             SUFFIX="_ttype_reformulate"
             echo "Aggregating results for Year: $YEAR, Type: $TYPE, Shot: $SHOT, Prompt: $PROMPT"
-            srun python -u pcir/aggregate_results.py --input "$INPUT_PREFIX" --suffix "$SUFFIX" --year "$YEAR"
+            srun python -u pcir/eval/aggregate_results.py --input "$INPUT_PREFIX" --suffix "$SUFFIX" --year "$YEAR"
           fi
         done
       done
@@ -52,7 +52,7 @@ for YEAR in "${YEARS[@]}"; do
         INPUT_PREFIX="ance_batch_SAR_${SHOT}"
         SUFFIX="_ttype_reformulate"
         echo "Aggregating results for Year: $YEAR, Type: $TYPE, Shot: $SHOT"
-        srun python -u pcir/aggregate_results.py --input "$INPUT_PREFIX" --suffix "$SUFFIX" --year "$YEAR"
+        srun python -u pcir/eval/aggregate_results.py --input "$INPUT_PREFIX" --suffix "$SUFFIX" --year "$YEAR"
       done
     else
       # Other types have only 0shot and use prompts
@@ -65,9 +65,9 @@ for YEAR in "${YEARS[@]}"; do
             SUFFIX="${SPLIT}_ttype_reformulate"
             echo "Aggregating results for Year: $YEAR, Type: $TYPE, Shot: $SHOT, Prompt: $PROMPT, Split: ${SPLIT}"
             if [ "$TYPE" == "automatic" ]; then
-              srun python -u pcir/aggregate_results.py --input "$INPUT_PREFIX" --suffix "$SUFFIX" --year "$YEAR" --automatic_method
+              srun python -u pcir/eval/aggregate_results.py --input "$INPUT_PREFIX" --suffix "$SUFFIX" --year "$YEAR" --automatic_method
             else
-              srun python -u pcir/aggregate_results.py --input "$INPUT_PREFIX" --suffix "$SUFFIX" --year "$YEAR"
+              srun python -u pcir/eval/aggregate_results.py --input "$INPUT_PREFIX" --suffix "$SUFFIX" --year "$YEAR"
             fi
           done
         else
@@ -76,9 +76,9 @@ for YEAR in "${YEARS[@]}"; do
           SUFFIX="_ttype_reformulate"
           echo "Aggregating results for Year: $YEAR, Type: $TYPE, Shot: $SHOT, Prompt: $PROMPT"
           if [ "$TYPE" == "automatic" ]; then
-            srun python -u pcir/aggregate_results.py --input "$INPUT_PREFIX" --suffix "$SUFFIX" --year "$YEAR" --automatic_method
+            srun python -u pcir/eval/aggregate_results.py --input "$INPUT_PREFIX" --suffix "$SUFFIX" --year "$YEAR" --automatic_method
           else
-            srun python -u pcir/aggregate_results.py --input "$INPUT_PREFIX" --suffix "$SUFFIX" --year "$YEAR"
+            srun python -u pcir/eval/aggregate_results.py --input "$INPUT_PREFIX" --suffix "$SUFFIX" --year "$YEAR"
           fi
         fi
       done

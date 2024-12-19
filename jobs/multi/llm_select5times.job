@@ -22,7 +22,7 @@ if [ -z "$OPENAI_API_KEY" ]; then
   exit 1
 fi
 
-source activate ir2-2
+source activate pcir
 
 # Use SLURM_ARRAY_TASK_ID as the seed
 SEED=$SLURM_ARRAY_TASK_ID

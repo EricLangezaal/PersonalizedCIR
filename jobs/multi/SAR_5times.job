@@ -23,5 +23,5 @@ if [ -z "$OPENAI_API_KEY" ]; then
 fi
 SEED=$SLURM_ARRAY_TASK_ID
 
-source activate ir2-2
+source activate pcir
 srun python -u pcir/methods/select_reformulate_Xshot.py --shot 1 --llm_model "meta-llama/Meta-Llama-3.1-8B-Instruct" --seed "$SEED"

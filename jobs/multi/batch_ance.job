@@ -14,7 +14,7 @@ module load 2024
 module load Anaconda3/2024.06-1
 
 # Activate the Conda environment
-source activate ir2
+source activate pcir
 
 # Define the input parameters
 TYPES=("All" "automatic" "human" "LLM" "None" "SAR")
@@ -69,8 +69,8 @@ for YEAR in "${YEARS[@]}"; do
             echo "Processing Type: $TYPE, Shot: $SHOT, Run: $RUN, Year: $YEAR"
 
             # Execute the processing command
-            srun python -u pcir/ance_ikat.py \
-              --config=pcir/ance_ikat_config.toml \
+            srun python -u pcir/eval/ance_ikat.py \
+              --config=pcir/eval/ance_ikat_config.toml \
               --test_file_path "$INPUT_PATH" \
               --year "$YEAR"
           else
@@ -120,8 +120,8 @@ for YEAR in "${YEARS[@]}"; do
                   echo "Running: Type=$TYPE, Shot=0shot, Run=$RUN, Prompt=$PROMPT, Mode=$MODE, Year=$YEAR"
 
                   # Execute the processing command with the automatic config
-                  srun python -u pcir/ance_ikat.py \
-                    --config=pcir/ance_ikat_config_automatic.toml \
+                  srun python -u pcir/eval/ance_ikat.py \
+                    --config=pcir/eval/ance_ikat_config_automatic.toml \
                     --test_file_path "$INPUT_PATH" \
                     --year "$YEAR" \
                     $EXTRA_ARGS
@@ -160,8 +160,8 @@ for YEAR in "${YEARS[@]}"; do
                 echo "Running: Type=$TYPE, Shot=0shot, Run=$RUN, Prompt=$PROMPT, Year=$YEAR"
 
                 # Execute the processing command with the automatic config
-                srun python -u pcir/ance_ikat.py \
-                  --config=pcir/ance_ikat_config_automatic.toml \
+                srun python -u pcir/eval/ance_ikat.py \
+                  --config=pcir/eval/ance_ikat_config_automatic.toml \
                   --test_file_path "$INPUT_PATH" \
                   --year "$YEAR"
               else
@@ -214,8 +214,8 @@ for YEAR in "${YEARS[@]}"; do
                   echo "Running: Type=$TYPE, Shot=$SHOT, Run=$RUN, Prompt=$PROMPT, Mode=$MODE, Year=$YEAR"
 
                   # Execute the processing command with the default config
-                  srun python -u pcir/ance_ikat.py \
-                    --config=pcir/ance_ikat_config.toml \
+                  srun python -u pcir/eval/ance_ikat.py \
+                    --config=pcir/eval/ance_ikat_config.toml \
                     --test_file_path "$INPUT_PATH" \
                     --year "$YEAR" \
                     $EXTRA_ARGS
@@ -253,8 +253,8 @@ for YEAR in "${YEARS[@]}"; do
                 echo "Running: Type=$TYPE, Shot=$SHOT, Run=$RUN, Prompt=$PROMPT, Year=$YEAR"
 
                 # Execute the processing command with the default config
-                srun python -u pcir/ance_ikat.py \
-                  --config=pcir/ance_ikat_config.toml \
+                srun python -u pcir/eval/ance_ikat.py \
+                  --config=pcir/eval/ance_ikat_config.toml \
                   --test_file_path "$INPUT_PATH" \
                   --year "$YEAR"
               else

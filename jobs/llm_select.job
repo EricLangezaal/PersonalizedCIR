@@ -21,5 +21,5 @@ if [ -z "$OPENAI_API_KEY" ]; then
   exit 1
 fi
 
-source activate ir2
-srun python -u pcir/select_ptkb_Xshot.py --shot 1 --llm_model "meta-llama/Meta-Llama-3.1-8B-Instruct"
+source activate pcir
+srun python -u pcir/methods/select_ptkb_Xshot.py --shot 1 --llm_model "meta-llama/Meta-Llama-3.1-8B-Instruct"
