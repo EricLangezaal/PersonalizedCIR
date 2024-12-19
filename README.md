@@ -2,7 +2,7 @@
 This is a reproduction study of the original paper: ["How to Leverage Personal Textual Knowledge for Personalized Conversational Information Retrieval."](https://arxiv.org/abs/2407.16192). The original codebase can be found [here](https://github.com/fengranMark/PersonalizedCIR). This codebase has been substantially extended to allow for self-contained experiments.
 
 # Environment and dependencies
-We highly suggest using a Conda environment through the provided installation script, since multiple requirements do not install correctly from PyPI automatically. To run this script, please invoke the following in the repositories main folder. This script will automatically install Anaconda if it cannot load nor find Conda.
+We highly suggest using a Conda environment through the provided installation script, since multiple requirements do not install correctly from PyPI automatically. To run this script, please invoke the following in the repositories main folder. This script will automatically install Anaconda if it cannot load nor find Conda. The environment name (`pcir` by default) can be changed at the top of the script.
 ```bash
 bash install_environment.sh
 ```
