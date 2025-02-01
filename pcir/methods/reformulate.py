@@ -146,13 +146,12 @@ def main():
             with open(args.output_path, 'a+') as outfile:
                     json.dump(data, outfile)
                     outfile.write('\n')
-            time.sleep(0.1)  
 
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--input_path", type=str, default="data/2023_test_topics_flattened.jsonl")
     parser.add_argument('--shot', type=int, default=0)
-    parser.add_argument('--annotation', type=str, default="LLM", choices=["LLM", "STR", "Human", "None", "All"])
+    parser.add_argument('--annotation', type=str, default="LLM", choices=["LLM", "STR", "human", "None", "All"])
     parser.add_argument('--prompt_type', type=int, default=1)
     parser.add_argument('--output_path', type=str, default=None)
     parser.add_argument('--llm_model', type=str, default="gpt-3.5-turbo-16k")
