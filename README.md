@@ -102,7 +102,7 @@ The paper distinguishes between five approaches that consist of a separate PTKB 
 - **STR**: First run ```python pcir/methods/select_ptkb_Xshot.py --shot 0``` to select the relevant PTKB. Then run ```python pcir/methods/reformulate.py --annotation 'LLM' --shot 0```
 - **Automatic**:  ```python pcir/methods/ptkb_automatic_method.py```
 
-## Output file details and overwrite option
+#### Output file details and overwrite option
 
 - **Default output file:**  
   If not explicitly provided via `--output_path`, the script will automatically create an output file in `data/results/` with a name following the pattern:  
