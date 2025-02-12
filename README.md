@@ -108,7 +108,7 @@ To run the SAR pipeline, which selects PTKB and reformulates the query in a sing
 python pcir/methods/select_reformulate_Xshot.py --shot 0
 ```
 
-## 1.3 Output file details and overwrite option
+### 1.3 Output file details and overwrite option
 
 - **Default output file:**  
   If not explicitly provided via `--output_path`, the script will automatically create an output file in `data/results/` with a name following the pattern:  
