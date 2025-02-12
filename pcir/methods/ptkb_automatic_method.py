@@ -2,14 +2,19 @@ import json
 import time
 import re
 import argparse
-
-from pcir.utils import get_assessed_turn_ids, init_llm, query_llm
+import os
+from pcir.utils import get_assessed_turn_ids, init_llm, query_llm, load_processed_sample_ids
 
 def main():
     args = get_args()
 
-    model = init_llm(args.llm_model)
+    model = init_llm(args.llm_model, args.seed)
     set_176 = get_assessed_turn_ids()
+    # If overwrite is specified, remove the output file if it exists
+    if args.overwrite and os.path.exists(args.output_path):
+        os.remove(args.output_path)
+        print(f"Existing output file removed due to --overwrite flag: {args.output_path}")
+    processed_sample_ids = load_processed_sample_ids(args.output_path)
 
     with open(args.input_path) as f:
         for line in f:
@@ -17,6 +22,8 @@ def main():
             sample_id = data.get('sample_id','')
             if sample_id not in set_176:
                 continue
+
+            
             ptkb = data.get('ptkb', '')
             cur_utt = data.get('cur_utt_text','')
             cur_resp = data.get('cur_response_text','')
@@ -30,6 +37,11 @@ def main():
 
 
             for i,v in ptkb.items():
+                temp_id = sample_id + '-' +str(i)
+                # Skip if sample_id-ptkb_num is already processed
+                if temp_id in processed_sample_ids:
+                    print(f"Skipping already processed sample_id: {sample_id}")
+                    continue
                 if conv == []:
                     conv = cur_utt
                 YourTask = '#Your Task:\n\n' + 'User\'s personal information: ' + v + '\n\n'
@@ -73,12 +85,15 @@ def get_args():
     parser.add_argument("--input_path", type=str, default="data/2023_test_topics_flattened.jsonl")
     parser.add_argument('--output_path', type=str, default=None)
     parser.add_argument('--llm_model', type=str, default="gpt-3.5-turbo-16k")
+    parser.add_argument('--seed', type=int, default=None, help='Random seed for reproducibility')
+    parser.add_argument('--overwrite', action='store_true', help='Overwrite existing output file and process all samples from scratch.')
+
 
     args = parser.parse_args()
 
     if args.output_path is None:
         llm_part = "" if args.llm_model == "gpt-3.5-turbo-16k" else "_" + args.llm_model.split("/")[0]
-        args.output_path = f"data/results/2023_test_automatic_select_0shot{llm_part}.jsonl"
+        args.output_path = f"data/results/2023_test_automatic_0shot{llm_part}_prompt_type1.jsonl"
     return args
 
 

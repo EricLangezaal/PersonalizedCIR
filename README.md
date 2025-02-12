@@ -33,10 +33,12 @@ pip install -e .
 
 ## 1. Downloading data
 
-This repository already contains the 2023 TREC iKAT conversation data inside the [data](/data/) folder. The 116M document collection has to be downloaded from the [iKAT TREC website](https://ikattrecweb.grill.science/UvA/). Note that the document collection is not public domain, requiring an account to be accessed. This repository contains Slurm job scripts to download both the raw JSONL passage data, as well as the prepared BM25 index. If you are not using Snellius Slurm, please also change the output directory on top of the job script. Running these scripts directly from terminal is possible by coping their contents to a bash script.
+This repository already contains the 2023 TREC iKAT conversation data inside the [data](/data/) folder. The 116M document collection has to be downloaded from the [iKAT TREC website](https://ikattrecweb.grill.science/UvA/). Note that the document collection is not public domain, requiring an account to be accessed. Please refer to the "collection" section in the [README of IKAT](https://github.com/irlabamsterdam/iKAT?tab=readme-ov-file#collection) for more details.
+
+This repository contains Slurm job scripts to download both the raw JSONL passage data, as well as the prepared BM25 index. If you are not using Snellius Slurm, please also change the output directory on top of the job script. Running these scripts directly from terminal is possible by coping their contents to a bash script.
 
 > [!IMPORTANT]
->  Both scripts below require an account to download the collection files. Please make sure to set the `IKAT_USERNAME` and `IKAT_PASSWORD` variables prior to downloading, for example by defining these in a `set_secrets.sh` script.  
+>  - Both scripts below require an account to download the collection files. Please make sure to set the `IKAT_USERNAME` and `IKAT_PASSWORD` variables prior to downloading, for example by defining these in a `set_secrets.sh` script.  
 
 The passages can be downloaded into a single `collection.jsonl` file using the script below. These files are only needed for the ANCE/dense retrieval. Make sure to modify the destination directory as needed.
 ```bash
@@ -50,7 +52,11 @@ sbatch jobs/download/download_index_dataset.job
 
 ## 2. Preprocessing
 After downloading the data, the JSONL collection needs to be preprocessed for the ANCE dense retrieval tasks. 
-The pre-trained ad-hoc search model ANCE is used generate passage embeddings, and is hosted by us on [HuggingFace](https://huggingface.co/3ricL/ad-hoc-ance-msmarco). The entire preprocessing can be invoked using the following two Python scripts. Note that this can take multiple days to run. Make sure to modify the filepaths in both configuration files to correspond to your file system.
+The pre-trained ad-hoc search model ANCE is used generate passage embeddings, and is hosted by us on [HuggingFace](https://huggingface.co/3ricL/ad-hoc-ance-msmarco). The entire preprocessing can be invoked using the following two Python scripts. Make sure to modify the filepaths in both configuration files to correspond to your file system.
+
+> [!IMPORTANT]
+>  It takes roughly 80 hours with a single A100 GPU to complete these scripts
+
 ```bash
 python index/gen_tokenized_doc.py --config=index/gen_tokenized_doc.toml
 python index/gen_doc_embeddings.py --config=index/gen_doc_embeddings.toml
@@ -91,9 +97,26 @@ The method of this research distinguishes between two different pipelines: First
 The paper distinguishes between five approaches that consist of a separate PTKB selection and reformulation stage: All, None, Human, Automatic and LLM (STR). The three baselines (None, All and Human) can be run by directly invoking the reformulation script. LLM/STR requires an explicit first step to be run, and automatic has its own custom script. See the list below for an example for each of the five approaches.
 - **None** (no PTKB): ```python pcir/methods/reformulate.py --annotation 'None"```
 - **All** (use all PTKB): ```python pcir/methods/reformulate.py --annotation 'All"```
-- **Human**: ```python pcir/methods/reformulate.py --annotation 'Human"```
-- **STR**: First run ```python pcir/methods/select_ptkb_Xshot.py --shot 0``` to select the relevant PTKB. Then run ```python pcir/methods/reformulate.py --annotation 'STR' --shot 0```
+- **Human**: ```python pcir/methods/reformulate.py --annotation 'human"```
+- **STR**: First run ```python pcir/methods/select_ptkb_Xshot.py --shot 0``` to select the relevant PTKB. Then run ```python pcir/methods/reformulate.py --annotation 'LLM' --shot 0```
 - **Automatic**:  ```python pcir/methods/ptkb_automatic_method.py```
+
+## Output File Details and Overwrite Option
+
+- ** Default Output File:**  
+  If not explicitly provided via `--output_path`, the script will automatically create an output file in `data/results/` with a name following the pattern:  
+  `2023_test_LLM_select_<N>shot[_<llm_model>].jsonl`  
+  For example: `data/results/2023_test_LLM_select_1shot.jsonl`
+  Note: using gpt-3.5-turbo-16k leaves llm_model empty as it's the default model
+
+- **Overwriting Existing Output:**  
+  The scripts check for already processed sample IDs in the output file and skips them in subsequent runs.  
+  **To re-run the scripts from scratch** set your openAI api key and use the `--overwrite` flag:
+  ```bash
+  source set_secrets.sh
+  python select_ptkb_xshot.py --shot 0 --overwrite
+  python reformulate.py --annotation LLM --shot 0 --prompt_type 1 --overwrite
+
       
 ### 1.2 Select and reformulate (SAR)
 To run the SAR pipeline, which selects PTKB and reformulates the query in a single pass, the following can be used:

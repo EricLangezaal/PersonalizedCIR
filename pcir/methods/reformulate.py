@@ -53,11 +53,17 @@ def main():
     model = init_llm(args.llm_model, args.seed)
 
     set_176 = get_assessed_turn_ids()
+    
+    # If overwrite is specified, remove the existing output file.
+    if args.overwrite and os.path.exists(args.output_path):
+        os.remove(args.output_path)
+        print(f"Existing output file {args.output_path} removed due to --overwrite flag.")
+
     processed_sample_ids = load_processed_sample_ids(args.output_path)
 
     if args.annotation in ['STR', 'LLM']:
         llm_part = "" if args.llm_model == "gpt-3.5-turbo-16k" else "_" + args.llm_model.split("/")[0]
-        provenance_file = f"data/results/2023_test_{args.annotation}_select_{args.shot}shot{llm_part}_run{args.seed}.jsonl"
+        provenance_file = f"data/results/2023_test_{args.annotation}_select_{args.shot}shot{llm_part}.jsonl"
     else:
         # human, None and All can be derived from test data provencance
         provenance_file = args.input_path
@@ -156,13 +162,14 @@ def get_args():
     parser.add_argument('--output_path', type=str, default=None)
     parser.add_argument('--llm_model', type=str, default="gpt-3.5-turbo-16k")
     parser.add_argument('--seed', type=int, default=None, help='Random seed for reproducibility')
+    parser.add_argument('--overwrite', action='store_true', help='Overwrite existing output file and process all samples from scratch.')
 
     args = parser.parse_args()
 
     if args.output_path is None:
         annotation = args.annotation.replace("LLM", "STR")
         llm_part = "" if args.llm_model == "gpt-3.5-turbo-16k" else "_" + args.llm_model.split("/")[0]
-        args.output_path = f"data/results/2023_test_{annotation}_{args.shot}shot_prompt_type{args.prompt_type}{llm_part}_run{args.seed}.jsonl"
+        args.output_path = f"data/results/2023_test_{annotation}_{args.shot}shot_prompt_type{args.prompt_type}{llm_part}.jsonl"
 
     print("Output path:", args.output_path)
     return args

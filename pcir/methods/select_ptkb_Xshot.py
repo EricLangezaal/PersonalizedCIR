@@ -6,7 +6,7 @@ from pcir.utils import load_processed_sample_ids, get_assessed_turn_ids, demonst
 import sys
 from openai import OpenAI
 from tenacity import retry, stop_after_attempt, wait_fixed
-
+import os
 client = OpenAI()
 
 @retry(stop=stop_after_attempt(5), wait=wait_fixed(2))
@@ -30,6 +30,12 @@ def main():
         sys.exit(1)
 
     model = init_llm(args.llm_model, args.seed)
+
+    # If overwrite is specified, remove the output file if it exists
+    if args.overwrite and os.path.exists(args.output_path):
+        os.remove(args.output_path)
+        print(f"Existing output file removed due to --overwrite flag: {args.output_path}")
+
 
     processed_sample_ids = load_processed_sample_ids(args.output_path)
     set_176 = get_assessed_turn_ids()
@@ -97,17 +103,18 @@ def main():
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--input_path", type=str, default="data/2023_test_topics_flattened.jsonl")
-    parser.add_argument('--shot', type=int, default=1)
+    parser.add_argument('--shot', type=int, default=0)
     parser.add_argument('--output_path', type=str, default=None)
     parser.add_argument('--random_examples', action='store_true', help='Select random samples for few-shot examples')
     parser.add_argument('--seed', type=int, default=None, help='Random seed for reproducibility')
     parser.add_argument('--llm_model', type=str, default="gpt-3.5-turbo-16k")
+    parser.add_argument('--overwrite', action='store_true', help='Overwrite existing output')
     args = parser.parse_args()
 
     # Set output_path dynamically based on shot
     if args.output_path is None:
         llm_part = "" if args.llm_model == "gpt-3.5-turbo-16k" else "_" + args.llm_model.split("/")[0]
-        args.output_path = f"data/results/2023_test_LLM_select_{args.shot}shot{llm_part}_run{args.seed}.jsonl"
+        args.output_path = f"data/results/2023_test_LLM_select_{args.shot}shot{llm_part}.jsonl"
 
     print("Output path:", args.output_path)
     return args
