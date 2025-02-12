@@ -102,12 +102,18 @@ The paper distinguishes between five approaches that consist of a separate PTKB 
 - **STR**: First run ```python pcir/methods/select_ptkb_Xshot.py --shot 0``` to select the relevant PTKB. Then run ```python pcir/methods/reformulate.py --annotation 'LLM' --shot 0```
 - **Automatic**:  ```python pcir/methods/ptkb_automatic_method.py```
 
-#### Output file details and overwrite option
+### 1.2 Select and reformulate (SAR)
+To run the SAR pipeline, which selects PTKB and reformulates the query in a single pass, the following can be used:
+```bash
+python pcir/methods/select_reformulate_Xshot.py --shot 0
+```
+
+## 1.3 Output file details and overwrite option
 
 - **Default output file:**  
   If not explicitly provided via `--output_path`, the script will automatically create an output file in `data/results/` with a name following the pattern:  
-  `2023_test_LLM_select_<N>shot[_<llm_model>].jsonl`  
-  For example: `data/results/2023_test_LLM_select_1shot.jsonl````
+  `2023_test_[_<ptkb_selection_type>_]_<N>shot[_<llm_model>].jsonl`  
+  For example: `data/results/2023_test_human_0shot.jsonl````
   
   Note: using gpt-3.5-turbo-16k leaves llm_model empty as it's the default model
 
@@ -118,12 +124,6 @@ The paper distinguishes between five approaches that consist of a separate PTKB 
   source set_secrets.sh
   python select_ptkb_xshot.py --shot 0 --overwrite
   python reformulate.py --annotation LLM --shot 0 --prompt_type 1 --overwrite
-```
-      
-### 1.2 Select and reformulate (SAR)
-To run the SAR pipeline, which selects PTKB and reformulates the query in a single pass, the following can be used:
-```bash
-python pcir/methods/select_reformulate_Xshot.py --shot 0
 ```
 
 ## 2. Retrieval evaluation
