@@ -107,13 +107,14 @@ The paper distinguishes between five approaches that consist of a separate PTKB 
 - **Default output file:**  
   If not explicitly provided via `--output_path`, the script will automatically create an output file in `data/results/` with a name following the pattern:  
   `2023_test_LLM_select_<N>shot[_<llm_model>].jsonl`  
-  For example: `data/results/2023_test_LLM_select_1shot.jsonl`
+  For example: `data/results/2023_test_LLM_select_1shot.jsonl````
+  
   Note: using gpt-3.5-turbo-16k leaves llm_model empty as it's the default model
 
 - **Overwriting Existing Output:**  
   The scripts check for already processed sample IDs in the output file and skips them in subsequent runs.  
   **To re-run the scripts from scratch** set your openAI api key and use the `--overwrite` flag:
-  ```bash
+```bash
   source set_secrets.sh
   python select_ptkb_xshot.py --shot 0 --overwrite
   python reformulate.py --annotation LLM --shot 0 --prompt_type 1 --overwrite
