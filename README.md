@@ -113,7 +113,7 @@ python pcir/methods/select_reformulate_Xshot.py --shot 0
 - **Default output file:**  
   If not explicitly provided via `--output_path`, the script will automatically create an output file in `data/results/` with a name following the pattern:  
   `2023_test_[_<ptkb_selection_type>_]_<N>shot[_<llm_model>].jsonl`  
-  For example: `data/results/2023_test_human_0shot.jsonl````
+  For example: `data/results/2023_test_human_0shot.jsonl`
   
   Note: using gpt-3.5-turbo-16k leaves llm_model empty as it's the default model
 
