@@ -23,6 +23,7 @@ Main packages:
 - tqdm 4.66.6
 - accelerate 1.2.0
 - scipy 1.14.1
+- httpx 0.27.2
 
 When installing manually, don't forget to install the repository itself as a package:
 ```bash
@@ -101,9 +102,9 @@ The paper distinguishes between five approaches that consist of a separate PTKB 
 - **STR**: First run ```python pcir/methods/select_ptkb_Xshot.py --shot 0``` to select the relevant PTKB. Then run ```python pcir/methods/reformulate.py --annotation 'LLM' --shot 0```
 - **Automatic**:  ```python pcir/methods/ptkb_automatic_method.py```
 
-## Output File Details and Overwrite Option
+## Output file details and overwrite option
 
-- ** Default Output File:**  
+- **Default output file:**  
   If not explicitly provided via `--output_path`, the script will automatically create an output file in `data/results/` with a name following the pattern:  
   `2023_test_LLM_select_<N>shot[_<llm_model>].jsonl`  
   For example: `data/results/2023_test_LLM_select_1shot.jsonl`
@@ -116,7 +117,7 @@ The paper distinguishes between five approaches that consist of a separate PTKB 
   source set_secrets.sh
   python select_ptkb_xshot.py --shot 0 --overwrite
   python reformulate.py --annotation LLM --shot 0 --prompt_type 1 --overwrite
-
+```
       
 ### 1.2 Select and reformulate (SAR)
 To run the SAR pipeline, which selects PTKB and reformulates the query in a single pass, the following can be used:
